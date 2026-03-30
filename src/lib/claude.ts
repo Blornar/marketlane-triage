@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { SYSTEM_PROMPT, CHAT_SYSTEM_PROMPT } from "./system-prompt";
+import { SYSTEM_PROMPT, CHAT_SYSTEM_PROMPT, REFERRAL_NOTES_PROMPT } from "./system-prompt";
 import { StreamingJsonParser } from "./streaming-parser";
-import { SSEEvent, ChatMessage, TriageResult } from "./types";
+import { SSEEvent, ChatMessage, TriageResult, ReferralNotes } from "./types";
 
 const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -24,7 +24,7 @@ export async function* streamTriage(
 
   const stream = client.messages.stream({
     model: MODEL,
-    max_tokens: 8192,
+    max_tokens: 12288,
     system: SYSTEM_PROMPT,
     messages: [
       {
@@ -64,6 +64,8 @@ export async function* streamTriage(
             yield { type: "step", step: "assessing" };
             assessmentEmitted = true;
           }
+          yield sseEvent;
+        } else if (sseEvent.type === "loss_scenarios" || sseEvent.type === "completeness_score" || sseEvent.type === "policy_recommendations") {
           yield sseEvent;
         } else {
           yield sseEvent;
@@ -107,4 +109,34 @@ export async function chatWithContext(
 
   const textBlock = response.content.find((b) => b.type === "text");
   return textBlock ? textBlock.text : "I was unable to generate a response.";
+}
+
+/**
+ * Generate referral notes on demand from a completed triage.
+ */
+export async function generateReferralNotes(
+  submissionText: string,
+  triageResult: TriageResult
+): Promise<ReferralNotes> {
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 4096,
+    system: REFERRAL_NOTES_PROMPT,
+    messages: [
+      {
+        role: "user",
+        content: `Generate referral notes for this submission.\n\n<submission>\n${submissionText}\n</submission>\n\n<triage_result>\n${JSON.stringify(triageResult, null, 2)}\n</triage_result>`,
+      },
+    ],
+  });
+
+  const textBlock = response.content.find((b) => b.type === "text");
+  if (!textBlock) throw new Error("No response from model");
+
+  // Parse JSON from response, stripping any markdown fencing
+  let text = textBlock.text.trim();
+  if (text.startsWith("```")) {
+    text = text.replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "");
+  }
+  return JSON.parse(text) as ReferralNotes;
 }

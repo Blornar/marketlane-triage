@@ -9,6 +9,10 @@ import {
   TriageResult,
   ChatMessage,
   SSEEvent,
+  LossScenario,
+  CompletenessScore,
+  PolicyRecommendation,
+  ReferralNotes,
 } from "@/lib/types";
 import { SAMPLE_SUBMISSIONS } from "@/lib/samples";
 
@@ -25,8 +29,15 @@ interface TriageStore {
   brandRouting: BrandRouting | null;
   riskAssessment: RiskAssessment | null;
   missingFields: MissingField[];
+  lossScenarios: LossScenario[];
+  completenessScore: CompletenessScore | null;
+  policyRecommendations: PolicyRecommendation[];
   metadata: TriageMetadata | null;
   fullResult: TriageResult | null;
+
+  // Referral notes (separate call)
+  referralNotes: ReferralNotes | null;
+  referralNotesLoading: boolean;
 
   // Chat
   chatMessages: ChatMessage[];
@@ -35,29 +46,38 @@ interface TriageStore {
   // UI
   error: string | null;
   isProcessing: boolean;
+  activeHighlightField: string | null;
 
   // Actions
   startTriageFromText: (text: string, fileName?: string) => Promise<void>;
   startTriageFromFile: (file: File) => Promise<void>;
   startTriageFromSample: (sampleId: string) => Promise<void>;
   sendChatMessage: (message: string) => Promise<void>;
+  generateReferralNotes: () => Promise<void>;
+  setActiveHighlightField: (field: string | null) => void;
   reset: () => void;
 }
 
 const initialState = {
   step: "upload" as TriageStep,
-  submissionText: null,
-  submissionFileName: null,
-  extractedFields: {},
-  brandRouting: null,
-  riskAssessment: null,
-  missingFields: [],
-  metadata: null,
-  fullResult: null,
-  chatMessages: [],
+  submissionText: null as string | null,
+  submissionFileName: null as string | null,
+  extractedFields: {} as Record<string, ExtractedField>,
+  brandRouting: null as BrandRouting | null,
+  riskAssessment: null as RiskAssessment | null,
+  missingFields: [] as MissingField[],
+  lossScenarios: [] as LossScenario[],
+  completenessScore: null as CompletenessScore | null,
+  policyRecommendations: [] as PolicyRecommendation[],
+  metadata: null as TriageMetadata | null,
+  fullResult: null as TriageResult | null,
+  referralNotes: null as ReferralNotes | null,
+  referralNotesLoading: false,
+  chatMessages: [] as ChatMessage[],
   chatLoading: false,
-  error: null,
+  error: null as string | null,
   isProcessing: false,
+  activeHighlightField: null as string | null,
 };
 
 export const useTriageStore = create<TriageStore>((set, get) => ({
@@ -91,13 +111,11 @@ export const useTriageStore = create<TriageStore>((set, get) => ({
       isProcessing: true,
     });
 
-    // Read file text for display in the viewer
     const reader = new FileReader();
     reader.onload = () => {
       set({ submissionText: reader.result as string });
     };
     if (file.type === "application/pdf") {
-      // For PDF, we'll get the text back from the API later via the full result
       set({ submissionText: "(PDF content being processed server-side...)" });
     } else {
       reader.readAsText(file);
@@ -161,9 +179,7 @@ export const useTriageStore = create<TriageStore>((set, get) => ({
         }),
       });
 
-      if (!res.ok) {
-        throw new Error("Chat request failed");
-      }
+      if (!res.ok) throw new Error("Chat request failed");
 
       const data = await res.json();
       set({
@@ -177,15 +193,36 @@ export const useTriageStore = create<TriageStore>((set, get) => ({
       set({
         chatMessages: [
           ...newMessages,
-          {
-            role: "assistant",
-            content: "Sorry, I encountered an error. Please try again.",
-          },
+          { role: "assistant", content: "Sorry, I encountered an error. Please try again." },
         ],
         chatLoading: false,
       });
     }
   },
+
+  generateReferralNotes: async () => {
+    const { submissionText, fullResult } = get();
+    if (!submissionText || !fullResult) return;
+
+    set({ referralNotesLoading: true });
+
+    try {
+      const res = await fetch("/api/referral-notes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ submissionText, triageResult: fullResult }),
+      });
+
+      if (!res.ok) throw new Error("Referral notes request failed");
+
+      const data = await res.json();
+      set({ referralNotes: data.referralNotes, referralNotesLoading: false });
+    } catch {
+      set({ referralNotesLoading: false, error: "Failed to generate referral notes" });
+    }
+  },
+
+  setActiveHighlightField: (field: string | null) => set({ activeHighlightField: field }),
 
   reset: () => set(initialState),
 }));
@@ -240,8 +277,7 @@ async function consumeSSEStream(
       }
     }
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Connection error";
+    const message = error instanceof Error ? error.message : "Connection error";
     set({ error: message, isProcessing: false });
   }
 }
@@ -272,6 +308,15 @@ function handleSSEEvent(
     case "missing_fields":
       set({ missingFields: event.data });
       break;
+    case "loss_scenarios":
+      set({ lossScenarios: event.data });
+      break;
+    case "completeness_score":
+      set({ completenessScore: event.data });
+      break;
+    case "policy_recommendations":
+      set({ policyRecommendations: event.data });
+      break;
     case "metadata":
       set({ metadata: event.data });
       break;
@@ -280,7 +325,6 @@ function handleSSEEvent(
         fullResult: event.data,
         step: "complete",
         isProcessing: false,
-        // Ensure all sub-fields are populated from the complete result
         extractedFields:
           Object.keys(get().extractedFields).length > 0
             ? get().extractedFields
@@ -291,6 +335,15 @@ function handleSSEEvent(
           get().missingFields.length > 0
             ? get().missingFields
             : event.data.missing_fields,
+        lossScenarios:
+          get().lossScenarios.length > 0
+            ? get().lossScenarios
+            : event.data.loss_scenarios || [],
+        completenessScore: get().completenessScore || event.data.completeness_score || null,
+        policyRecommendations:
+          get().policyRecommendations.length > 0
+            ? get().policyRecommendations
+            : event.data.policy_recommendations || [],
         metadata: event.data.metadata,
       });
       break;

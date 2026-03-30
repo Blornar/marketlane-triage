@@ -106,6 +106,49 @@ Provide a thorough risk assessment with:
 3. follow_up_questions: 3-5 specific questions the underwriter should ask the broker. Be precise — reference the actual submission content and what's missing or unclear.
 </risk_assessment_instructions>
 
+<loss_scenario_instructions>
+Generate 3 to 5 plausible loss scenarios specific to THIS risk based on the extracted details. Do NOT use generic scenarios — reference actual hazards, operations, and exposures mentioned in the submission.
+
+For each scenario provide:
+- title: Short name (e.g. "Ammonia Refrigeration System Failure")
+- description: 2-3 sentences describing how the loss could occur and its consequences
+- severity: "catastrophic" (>$10M or business-ending), "major" ($1M-$10M), "moderate" ($100K-$1M), or "minor" (<$100K)
+- likelihood: "high" (expected within 5 years), "medium" (plausible within 10 years), "low" (unlikely but possible), or "rare" (extreme/tail risk)
+- financial_impact_low: Lower bound estimate in AUD (number, no currency symbol)
+- financial_impact_high: Upper bound estimate in AUD (number, no currency symbol)
+
+Order scenarios from highest composite risk (severity x likelihood) to lowest.
+</loss_scenario_instructions>
+
+<completeness_score_instructions>
+Score the submission's completeness from 0 to 100, broken down into 4 categories:
+
+1. "Insured Details" — fields: insured_name, abn_acn, business_description, industry_category, annual_revenue, number_of_employees
+2. "Risk Details" — fields: location_primary, location_additional, key_risks, special_conditions
+3. "Coverage Details" — fields: coverage_requested, policy_period, sum_insured, deductible_preference
+4. "Claims & Broker" — fields: claims_history, broker_name, broker_company
+
+For each category provide:
+- category: The category name
+- score: 0-100 based on how completely information is provided (partial info counts proportionally)
+- fields_present: Array of field names that have usable information
+- fields_missing: Array of field names that are absent or too vague
+
+Overall score = weighted average (Insured Details 30%, Risk Details 30%, Coverage Details 25%, Claims & Broker 15%).
+Grade: 80-100="excellent", 60-79="good", 40-59="fair", 20-39="poor", 0-19="insufficient".
+Provide a one-sentence summary.
+</completeness_score_instructions>
+
+<policy_recommendations_instructions>
+Suggest 4-8 specific policy wording recommendations based on the risk profile. Be specific to this industry and these exposures — not generic advice.
+
+For each recommendation:
+- type: "exclusion" (what to exclude), "endorsement" (what to add), "subjectivity" (conditions before binding), or "condition" (ongoing policy conditions)
+- text: The actual recommendation wording as it would appear in policy documentation
+- reasoning: 1-2 sentences explaining why this is recommended, referencing specific submission details
+- priority: "essential" (must have), "recommended" (strongly advised), or "consider" (worth discussing)
+</policy_recommendations_instructions>
+
 <output_format>
 Return ONLY a single valid JSON object. No markdown code blocks, no explanation outside the JSON. The JSON must have these top-level keys in this exact order:
 
@@ -114,6 +157,9 @@ Return ONLY a single valid JSON object. No markdown code blocks, no explanation 
   "missing_fields": [ ... ],
   "brand_routing": { ... },
   "risk_assessment": { ... },
+  "loss_scenarios": [ ... ],
+  "completeness_score": { ... },
+  "policy_recommendations": [ ... ],
   "metadata": { ... }
 }
 
@@ -132,3 +178,16 @@ You have access to:
 Answer the underwriter's questions with specific, professional, practical responses. Reference the submission data where relevant. Use Australian English. Be concise and direct — this is a live demo environment.
 
 If asked to draft a broker response, write it in a professional email format suitable for an Australian insurance market.`;
+
+export const REFERRAL_NOTES_PROMPT = `You are a senior underwriter at Market Lane Insurance Group generating a formal referral note for an incoming submission. You have the original submission text and the completed triage analysis.
+
+Produce a JSON object with these keys:
+
+- risk_overview: 2-3 paragraphs summarising the risk, the insured's operations, and the key underwriting considerations. Professional tone, Australian English.
+- key_concerns: Array of 3-6 specific concerns the underwriter should investigate further.
+- recommended_terms: Array of 3-6 recommended policy terms, conditions, or special terms for this risk.
+- suggested_exclusions: Array of 2-5 exclusions that should be applied or considered for this risk, with brief justification.
+- premium_considerations: A paragraph discussing factors that should influence premium setting — claims history, hazard profile, sum insured adequacy, industry benchmarks.
+- broker_response_draft: A complete professional email to the broker acknowledging receipt, summarising the key information needed, and listing any outstanding requirements. Format as a ready-to-send email with greeting and sign-off from "Market Lane Insurance Group — Underwriting Team".
+
+Return ONLY valid JSON. No markdown code blocks.`;

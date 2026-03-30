@@ -175,6 +175,15 @@ export class StreamingJsonParser {
         case "risk_assessment":
           this.events.push({ type: "risk_assessment", data });
           break;
+        case "loss_scenarios":
+          this.events.push({ type: "loss_scenarios", data });
+          break;
+        case "completeness_score":
+          this.events.push({ type: "completeness_score", data });
+          break;
+        case "policy_recommendations":
+          this.events.push({ type: "policy_recommendations", data });
+          break;
         case "metadata":
           this.events.push({ type: "metadata", data });
           break;

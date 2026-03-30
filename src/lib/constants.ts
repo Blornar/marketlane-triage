@@ -41,3 +41,28 @@ export const WORKFLOW_STEPS = [
   { key: "assessing" as const, label: "Assess" },
   { key: "complete" as const, label: "Complete" },
 ];
+
+export type TabGroup = "analysis" | "insights" | "actions";
+
+export interface TabDefinition {
+  id: string;
+  label: string;
+  group: TabGroup;
+}
+
+export const TAB_GROUPS: { key: TabGroup; label: string }[] = [
+  { key: "analysis", label: "Analysis" },
+  { key: "insights", label: "Insights" },
+  { key: "actions", label: "Actions" },
+];
+
+export const ALL_TABS: TabDefinition[] = [
+  { id: "extraction", label: "Extraction", group: "analysis" },
+  { id: "routing", label: "Routing", group: "analysis" },
+  { id: "risk", label: "Risk", group: "analysis" },
+  { id: "missing", label: "Missing", group: "analysis" },
+  { id: "scenarios", label: "Scenarios", group: "insights" },
+  { id: "recommendations", label: "Policy Wording", group: "insights" },
+  { id: "completeness", label: "Completeness", group: "insights" },
+  { id: "referral", label: "Referral Notes", group: "actions" },
+];

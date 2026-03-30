@@ -1,7 +1,7 @@
 "use client";
 
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ChevronDown, ChevronRight, Loader2 } from "lucide-react";
+import { ChevronDown, ChevronRight, Loader2, Highlighter } from "lucide-react";
 import { useState } from "react";
 import { useTriageStore } from "@/store/triageStore";
 import { FIELD_LABELS } from "@/lib/constants";
@@ -17,10 +17,16 @@ export default function ExtractionPanel() {
   const extractedFields = useTriageStore((s) => s.extractedFields);
   const isProcessing = useTriageStore((s) => s.isProcessing);
   const step = useTriageStore((s) => s.step);
+  const activeHighlightField = useTriageStore((s) => s.activeHighlightField);
+  const setActiveHighlightField = useTriageStore((s) => s.setActiveHighlightField);
   const [expandedField, setExpandedField] = useState<string | null>(null);
 
   const fieldEntries = Object.entries(extractedFields);
   const isExtracting = step === "extracting" && isProcessing;
+
+  const handleFieldClick = (name: string) => {
+    setActiveHighlightField(activeHighlightField === name ? null : name);
+  };
 
   return (
     <ScrollArea className="h-full">
@@ -45,19 +51,29 @@ export default function ExtractionPanel() {
         {fieldEntries.map(([name, field], index) => {
           const style = confidenceStyles[field.confidence];
           const isExpanded = expandedField === name;
+          const isHighlighted = activeHighlightField === name;
           const label = FIELD_LABELS[name] || name.replace(/_/g, " ");
+          const hasSource = !!field.source_text && field.source_text.length >= 5;
 
           return (
             <div
               key={name}
-              className="ml-card rounded-lg bg-white p-4 animate-fade-in-up"
+              className={`ml-card rounded-lg bg-white p-4 animate-fade-in-up transition-all duration-200 ${
+                isHighlighted ? "ring-2 ring-ml-gold/40 border-ml-gold/30" : ""
+              } ${hasSource ? "cursor-pointer" : ""}`}
               style={{ opacity: 0, animationDelay: `${index * 60}ms` }}
+              onClick={() => hasSource && handleFieldClick(name)}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
-                  <p className="text-[10px] font-semibold text-ml-navy/35 uppercase tracking-wider mb-1">
-                    {label}
-                  </p>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <p className="text-[10px] font-semibold text-ml-navy/35 uppercase tracking-wider">
+                      {label}
+                    </p>
+                    {isHighlighted && (
+                      <Highlighter className="h-3 w-3 text-ml-gold" />
+                    )}
+                  </div>
                   <p className="text-sm text-ml-navy leading-relaxed">
                     {field.value}
                   </p>
@@ -69,7 +85,7 @@ export default function ExtractionPanel() {
               {field.source_text && (
                 <>
                   <button
-                    onClick={() => setExpandedField(isExpanded ? null : name)}
+                    onClick={(e) => { e.stopPropagation(); setExpandedField(isExpanded ? null : name); }}
                     className="mt-2.5 flex items-center gap-1 text-[11px] text-ml-navy/30 hover:text-ml-gold-dark transition-colors"
                   >
                     {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
