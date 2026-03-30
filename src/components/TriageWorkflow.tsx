@@ -73,24 +73,26 @@ function MLHeader({ showReset }: { showReset: boolean }) {
 
   return (
     <header className="bg-ml-navy">
-      <div className="mx-auto flex items-center justify-between px-8 py-4">
-        <div className="flex items-center gap-8">
+      <div className="mx-auto flex items-center justify-between px-4 sm:px-8 py-3 sm:py-4">
+        <div className="flex items-center gap-3 sm:gap-8 min-w-0">
           {/* Market Lane wordmark */}
-          <div className="flex flex-col">
-            <span className="font-serif text-2xl font-semibold tracking-tight text-white leading-none">
+          <div className="flex flex-col shrink-0">
+            <span className="font-serif text-xl sm:text-2xl font-semibold tracking-tight text-white leading-none">
               MarketLane.
             </span>
-            <span className="text-[10px] font-sans font-medium tracking-[0.25em] uppercase text-ml-gold-light mt-0.5">
+            <span className="text-[9px] sm:text-[10px] font-sans font-medium tracking-[0.25em] uppercase text-ml-gold-light mt-0.5">
               Insurance Group
             </span>
           </div>
-          <div className="h-8 w-px bg-white/10" />
-          <span className="text-sm font-sans font-medium text-white/70 tracking-wide">
+          <div className="h-8 w-px bg-white/10 hidden sm:block" />
+          <span className="text-sm font-sans font-medium text-white/70 tracking-wide hidden sm:block">
             Submission Triage
           </span>
         </div>
-        <div className="flex items-center gap-6">
-          <StepIndicator />
+        <div className="flex items-center gap-3 sm:gap-6 shrink-0">
+          <div className="hidden md:block">
+            <StepIndicator />
+          </div>
           {showReset && (
             <button
               onClick={reset}
@@ -115,7 +117,7 @@ export default function TriageWorkflow() {
   const isUpload = step === "upload";
 
   return (
-    <div className="flex h-screen flex-col bg-ml-cream">
+    <div className="flex h-screen flex-col bg-ml-cream overflow-x-hidden">
       <MLHeader showReset={!isUpload} />
 
       {/* Gold accent line */}

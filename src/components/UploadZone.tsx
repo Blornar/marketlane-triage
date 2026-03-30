@@ -49,7 +49,7 @@ export default function UploadZone() {
     <div className="mx-auto max-w-2xl w-full">
       {/* Title area */}
       <div className="text-center mb-10 animate-fade-in">
-        <h1 className="font-serif text-display text-ml-navy mb-3">
+        <h1 className="font-serif text-3xl sm:text-display text-ml-navy mb-3">
           Submission Triage.
         </h1>
         <p className="text-lg text-ml-navy/50 font-light max-w-md mx-auto">

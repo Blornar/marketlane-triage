@@ -16,7 +16,7 @@ export default function SampleSelector() {
   const startTriageFromSample = useTriageStore((s) => s.startTriageFromSample);
 
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
       {SAMPLE_SUBMISSIONS.map((sample, index) => {
         const Icon = ICON_MAP[sample.icon] || Factory;
         const brandColour = BRAND_COLOURS[sample.brandHint];
