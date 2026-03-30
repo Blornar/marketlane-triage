@@ -1,6 +1,5 @@
 import { NextRequest } from "next/server";
 import { streamTriage } from "@/lib/claude";
-import { extractTextFromPDF } from "@/lib/pdf-extract";
 import { SAMPLE_SUBMISSIONS } from "@/lib/samples";
 import { MAX_FILE_SIZE_BYTES, MAX_TEXT_LENGTH } from "@/lib/constants";
 
@@ -35,6 +34,7 @@ export async function POST(req: NextRequest) {
       const buffer = Buffer.from(await file.arrayBuffer());
 
       if (file.type === "application/pdf" || file.name.endsWith(".pdf")) {
+        const { extractTextFromPDF } = await import("@/lib/pdf-extract");
         submissionText = await extractTextFromPDF(buffer);
         submissionType = "pdf";
       } else {
