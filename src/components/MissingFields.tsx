@@ -45,9 +45,9 @@ export default function MissingFields() {
   return (
     <ScrollArea className="h-full">
       <div className="p-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <AlertCircle className="h-4 w-4 text-amber-600" />
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <AlertCircle className="h-4 w-4 shrink-0 text-amber-600" />
             <h3 className="font-serif text-heading-2 text-ml-navy">Missing Information</h3>
             <span className="rounded bg-ml-navy/5 px-2 py-0.5 text-[10px] font-semibold text-ml-navy/40">
               {sorted.length}
@@ -57,7 +57,7 @@ export default function MissingFields() {
             variant="outline"
             size="sm"
             onClick={copyAllQuestions}
-            className="border-ml-navy/10 text-xs text-ml-navy/50 hover:text-ml-navy hover:border-ml-gold/30"
+            className="border-ml-navy/10 text-xs text-ml-navy/50 hover:text-ml-navy hover:border-ml-gold/30 shrink-0"
           >
             {copied ? <Check className="mr-1 h-3 w-3 text-green-600" /> : <Copy className="mr-1 h-3 w-3" />}
             {copied ? "Copied" : "Copy All"}

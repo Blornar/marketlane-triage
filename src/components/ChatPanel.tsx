@@ -40,7 +40,7 @@ export default function ChatPanel() {
       {/* Toggle header */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center justify-between px-6 py-3 hover:bg-ml-cream/50 transition-colors"
+        className="flex w-full items-center justify-between px-4 sm:px-6 py-3 hover:bg-ml-cream/50 transition-colors"
       >
         <div className="flex items-center gap-2.5">
           <MessageSquare className="h-4 w-4 text-ml-gold" />
@@ -64,7 +64,7 @@ export default function ChatPanel() {
         <div className="border-t border-ml-navy/5">
           <div className="flex h-[360px] flex-col">
             {/* Messages */}
-            <ScrollArea className="flex-1 px-6 py-4" ref={scrollRef}>
+            <ScrollArea className="flex-1 px-4 sm:px-6 py-4" ref={scrollRef}>
               {chatMessages.length === 0 ? (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 text-xs text-ml-navy/30 font-medium tracking-wide uppercase">
@@ -112,7 +112,7 @@ export default function ChatPanel() {
             </ScrollArea>
 
             {/* Input */}
-            <div className="border-t border-ml-navy/5 p-4">
+            <div className="border-t border-ml-navy/5 p-3 sm:p-4">
               <div className="flex gap-2">
                 <input
                   type="text"

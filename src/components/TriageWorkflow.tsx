@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RotateCcw } from "lucide-react";
+import { RotateCcw, FileText, ChevronLeft } from "lucide-react";
 import { useTriageStore } from "@/store/triageStore";
 import { WORKFLOW_STEPS, TAB_GROUPS, ALL_TABS, TabGroup } from "@/lib/constants";
 import UploadZone from "./UploadZone";
@@ -94,7 +94,7 @@ function MLHeader({ showReset }: { showReset: boolean }) {
           </span>
         </div>
         <div className="flex items-center gap-3 sm:gap-6 shrink-0">
-          <div className="hidden md:block">
+          <div className="hidden lg:block">
             <StepIndicator />
           </div>
           {showReset && (
@@ -146,6 +146,7 @@ export default function TriageWorkflow() {
   const reset = useTriageStore((s) => s.reset);
   const metadata = useTriageStore((s) => s.metadata);
   const [activeGroup, setActiveGroup] = useState<TabGroup>("analysis");
+  const [mobileShowSource, setMobileShowSource] = useState(false);
 
   const isUpload = step === "upload";
   const groupTabs = ALL_TABS.filter((t) => t.group === activeGroup);
@@ -157,11 +158,11 @@ export default function TriageWorkflow() {
       <div className="ml-gold-line" />
 
       {error && (
-        <div className="mx-8 mt-4 rounded border border-red-200 bg-red-50 px-5 py-3 text-sm text-red-800 flex items-center justify-between">
+        <div className="mx-4 sm:mx-8 mt-4 rounded border border-red-200 bg-red-50 px-4 sm:px-5 py-3 text-sm text-red-800 flex items-center justify-between gap-3">
           <span>{error}</span>
           <button
             onClick={reset}
-            className="text-xs font-medium text-red-700 underline underline-offset-2 hover:text-red-900"
+            className="text-xs font-medium text-red-700 underline underline-offset-2 hover:text-red-900 shrink-0"
           >
             Try Again
           </button>
@@ -170,27 +171,54 @@ export default function TriageWorkflow() {
 
       <div className="flex-1 overflow-hidden">
         {isUpload ? (
-          <div className="h-full overflow-y-auto py-12 px-8">
+          <div className="h-full overflow-y-auto py-8 sm:py-12 px-4 sm:px-8">
             <UploadZone />
           </div>
         ) : (
           <div className="flex h-full flex-col">
-            <div className="flex flex-1 overflow-hidden">
-              {/* Left pane: submission viewer */}
-              <div className="w-[38%] border-r border-ml-navy/5 bg-white">
-                <SubmissionViewer />
+            <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
+              {/* Left pane: submission viewer — full screen overlay on mobile */}
+              <div className={`${
+                mobileShowSource
+                  ? "fixed inset-0 z-40 bg-white flex flex-col"
+                  : "hidden"
+              } md:relative md:flex md:flex-col md:w-[38%] md:z-auto border-r border-ml-navy/5 bg-white`}>
+                {/* Mobile close button */}
+                <div className="flex items-center justify-between border-b border-ml-navy/5 px-4 py-2.5 md:hidden">
+                  <button
+                    onClick={() => setMobileShowSource(false)}
+                    className="flex items-center gap-1.5 text-sm font-medium text-ml-navy/60"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Back to Analysis
+                  </button>
+                </div>
+                <div className="flex-1 overflow-hidden">
+                  <SubmissionViewer />
+                </div>
               </div>
 
               {/* Right pane: sectioned tabs */}
               <div className="flex-1 flex flex-col overflow-hidden bg-ml-cream">
+                {/* Mobile: view source button */}
+                <div className="flex items-center gap-2 border-b border-ml-navy/5 bg-white px-4 py-2 md:hidden">
+                  <button
+                    onClick={() => setMobileShowSource(true)}
+                    className="flex items-center gap-1.5 rounded bg-ml-navy/5 px-3 py-1.5 text-xs font-medium text-ml-navy/60 hover:bg-ml-navy/10 transition-colors"
+                  >
+                    <FileText className="h-3.5 w-3.5" />
+                    View Source Document
+                  </button>
+                </div>
+
                 {/* Section selector */}
-                <div className="border-b border-ml-navy/5 bg-white px-6">
-                  <div className="flex items-center gap-1 pt-3">
+                <div className="border-b border-ml-navy/5 bg-white px-3 sm:px-6">
+                  <div className="flex items-center gap-0.5 sm:gap-1 pt-3 overflow-x-auto scrollbar-hide">
                     {TAB_GROUPS.map((group) => (
                       <button
                         key={group.key}
                         onClick={() => setActiveGroup(group.key)}
-                        className={`relative rounded-t px-4 py-2 text-xs font-semibold tracking-wider uppercase transition-all ${
+                        className={`relative shrink-0 rounded-t px-3 sm:px-4 py-2 text-xs font-semibold tracking-wider uppercase transition-all ${
                           activeGroup === group.key
                             ? "bg-ml-cream text-ml-navy border border-ml-navy/5 border-b-transparent -mb-px"
                             : "text-ml-navy/30 hover:text-ml-navy/50"
@@ -205,13 +233,13 @@ export default function TriageWorkflow() {
 
                 {/* Tab bar for active section */}
                 <Tabs key={activeGroup} defaultValue={defaultTab} className="flex h-full flex-col">
-                  <div className="border-b border-ml-navy/5 bg-ml-cream/50 px-6 pt-2">
-                    <TabsList className="bg-transparent p-0 gap-0">
+                  <div className="border-b border-ml-navy/5 bg-ml-cream/50 px-3 sm:px-6 pt-2 overflow-x-auto scrollbar-hide">
+                    <TabsList className="bg-transparent p-0 gap-0 w-max">
                       {groupTabs.map((tab) => (
                         <TabsTrigger
                           key={tab.id}
                           value={tab.id}
-                          className="rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-1 text-sm font-medium tracking-wide data-[state=active]:border-ml-gold data-[state=active]:text-ml-navy data-[state=active]:bg-transparent data-[state=active]:shadow-none text-ml-navy/40 hover:text-ml-navy/60 bg-transparent"
+                          className="shrink-0 rounded-none border-b-2 border-transparent px-3 sm:px-4 pb-2.5 pt-1 text-sm font-medium tracking-wide data-[state=active]:border-ml-gold data-[state=active]:text-ml-navy data-[state=active]:bg-transparent data-[state=active]:shadow-none text-ml-navy/40 hover:text-ml-navy/60 bg-transparent"
                         >
                           {tab.label}
                         </TabsTrigger>
@@ -232,7 +260,7 @@ export default function TriageWorkflow() {
                 </Tabs>
 
                 {metadata && (
-                  <div className="border-t border-ml-navy/5 bg-white px-6 py-2 text-xs text-ml-navy/40 font-sans">
+                  <div className="border-t border-ml-navy/5 bg-white px-4 sm:px-6 py-2 text-xs text-ml-navy/40 font-sans">
                     Processed in {(metadata.processing_time_ms / 1000).toFixed(1)}s · {metadata.model_used}
                   </div>
                 )}

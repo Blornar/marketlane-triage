@@ -105,7 +105,7 @@ export default function SubmissionViewer() {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between border-b border-ml-navy/5 px-6 py-3.5">
+      <div className="flex items-center justify-between border-b border-ml-navy/5 px-4 sm:px-6 py-3.5">
         <div className="flex items-center gap-2.5">
           <FileText className="h-4 w-4 text-ml-gold" />
           <span className="text-sm font-medium text-ml-navy">
@@ -126,7 +126,7 @@ export default function SubmissionViewer() {
           </button>
         )}
       </div>
-      <ScrollArea className="flex-1 px-6 py-5">
+      <ScrollArea className="flex-1 px-4 sm:px-6 py-5">
         {segments ? (
           <div className="whitespace-pre-wrap text-[13px] leading-relaxed text-ml-navy/60 font-sans">
             {segments.map((seg, i) => {

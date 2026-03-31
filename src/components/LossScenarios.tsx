@@ -72,14 +72,14 @@ export default function LossScenarios() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 mt-3">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-3">
                 <span className={`rounded px-2 py-0.5 text-[10px] font-semibold tracking-wide ${sev.bg} ${sev.color}`}>
                   {sev.label}
                 </span>
                 <span className={`rounded px-2 py-0.5 text-[10px] font-semibold tracking-wide ${lik.bg} ${lik.color}`}>
                   {lik.label} likelihood
                 </span>
-                <div className="flex-1" />
+                <div className="flex-1 hidden sm:block" />
                 <div className="flex items-center gap-1.5">
                   <TrendingDown className="h-3.5 w-3.5 text-ml-navy/30" />
                   <span className="text-sm font-medium text-ml-navy">
