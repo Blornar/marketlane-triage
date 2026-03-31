@@ -151,3 +151,12 @@
 .animate-gentle-pulse {
   animation: gentlePulse 2s ease-in-out infinite;
 }
+
+/* Hide scrollbar for horizontal tab scrolling on mobile */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
